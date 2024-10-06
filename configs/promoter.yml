@@ -1,0 +1,58 @@
+train:
+  seed: 42
+  max_iter: 200000
+  batch_size: 256
+  log_freq: 100
+  val_freq: 5000
+  save_freq: 10000
+  max_grad_norm: 100.
+  optimizer:
+    type: adam
+    lr: 5.e-4
+    weight_decay: 0.
+    beta1: 0.9
+    beta2: 0.999
+  scheduler:
+    type: plateau
+    factor: 0.5
+    patience: 10
+    min_lr: 5.e-4
+
+datasets:
+  type: promoter
+  root: ./data/promoter
+  seqlength: 1024
+  n_tsses: 100000
+  ref_file: Homo_sapiens.GRCh38.dna.primary_assembly.fa
+  ref_file_mmap: Homo_sapiens.GRCh38.dna.primary_assembly.fa.mmap
+  tsses_file: FANTOM_CAT.lv3_robust.tss.sortedby_fantomcage.hg38.v4.tsv
+  fantom_files:
+    - agg.plus.bw.bedgraph.bw
+    - agg.minus.bw.bedgraph.bw
+  fantom_blacklist_files:
+    - fantom.blacklist8.plus.bed.gz
+    - fantom.blacklist8.minus.bed.gz
+  train:
+    rand_offset: 10
+  valid:
+    n_tsses: 100000
+  test:
+    n_tsses: 100000
+
+model:
+  type: sphere
+  data_dims: [ 1024 ]
+  n_class: 4
+  ot: false
+encoder:
+  type: seq
+  embed_dim: 256
+
+conditioned: true
+valid_max_batch: null
+sample_max_batch: null
+visualizer:
+  type: promoter
+  n_step: 300
+  sei_model_path: data/promoter/best.sei.model.pth.tar
+  sei_feat_path: data/promoter/target.sei.names

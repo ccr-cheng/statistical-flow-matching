@@ -1,0 +1,46 @@
+train:
+  seed: 42
+  max_iter: 1_000_000
+  batch_size: 512
+  log_freq: 100
+  val_freq: 1000
+  save_freq: 5000
+  max_grad_norm: 100.
+  optimizer:
+    type: adamw
+    lr: 1.e-4
+    weight_decay: 0.
+    beta1: 0.9
+    beta2: 0.999
+  scheduler:
+    type: plateau
+    factor: 0.5
+    patience: 10
+    min_lr: 1.e-4
+
+datasets:
+  type: text8
+  root: ./data/text8
+  seq_len: 256
+
+model:
+  type: sphere
+  data_dims: [ 256 ]
+  n_class: 27
+  ot: false
+encoder:
+  type: gpt
+  vocab_size: 27
+  n_layer: 12
+  n_head: 8
+  n_embd: 384
+  dropout: 0.0
+  skip: True
+  bias: True
+
+conditioned: false
+valid_max_batch: 16
+visualizer:
+  type: text8
+  n_sample: 3
+  n_step: 256

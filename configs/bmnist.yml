@@ -1,0 +1,37 @@
+train:
+  seed: 42
+  max_iter: 100000
+  batch_size: 256
+  log_freq: 50
+  val_freq: 500
+  save_freq: 5000
+  max_grad_norm: 100.
+  optimizer:
+    type: adam
+    lr: 3.e-4
+    weight_decay: 0.
+    beta1: 0.9
+    beta2: 0.999
+  scheduler:
+    type: plateau
+    factor: 0.5
+    patience: 10
+    min_lr: 1.e-4
+
+datasets:
+  type: bmnist
+  root: ./data/bmnist
+
+model:
+  type: sphere
+  data_dims: [ 28, 28 ]
+  n_class: 2
+  ot: true
+encoder:
+  type: cnn
+
+conditioned: false
+visualizer:
+  type: bmnist
+  n_sample: 100
+  n_step: 200
