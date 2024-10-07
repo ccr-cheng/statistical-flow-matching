@@ -5,8 +5,10 @@ By Chaoran Cheng, Oct 2nd, 2024
 This is the official repo for the NeurIPS 2024 paper *Categorical Flow Matching on Statistical Manifolds* by Chaoran Cheng, Jiahan Li, Jian Peng, and Ge Liu. The paper is available at [arXiv](https://arxiv.org/abs/2405.16441).
 
 
+<p align="center">
 <img src="assets/swissroll.gif" height="400" alt="swissroll"/>
 <img src="assets/bmnist.gif" height="400" alt="bmnist"/>
+</p>
 
 
 ## Introduction
