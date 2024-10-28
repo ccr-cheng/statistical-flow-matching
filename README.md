@@ -35,8 +35,10 @@ class DummyVF(nn.Module):
             nn.Linear(hidden_dim, n_class)
         )
 
-    def forward(self, x, t):
-        return self.fc(x)
+    def forward(self, xt, t):
+        # xt is the noised data of shape (batch_size, *data_dim, n_class)
+        # t is the timestep of shape (batch_size,) or a scalar
+        return self.fc(xt)
 
 
 sfm = SphereCategoricalFlow(
@@ -44,21 +46,16 @@ sfm = SphereCategoricalFlow(
 )
 ```
 
-The vector field encoder should be an `nn.Module` instance that accepts the current noised data `x`, timestep `t`, and any (optional) additional conditional arguments as input. See [Usage](#usage) for more details. Below are the requirements (you've probably already had them!):
+The vector field encoder should be an `nn.Module` instance that accepts the current noised data `xt`, timestep `t`, and any (optional) additional conditional arguments as input. See [Usage](#usage) for more details. Below are the requirements (you've probably already had them!):
 
-- `1.10 <= torch <= 1.13` OR `torch >= 2.0` (recommended). For `torch <= 1.3`, the package `functorch` is used. Note that in some early versions, `functorch` is not automatically installed with PyTorch, and you may need to install it manually. For `torch >= 2.0`, `torch.func` is now shipped with PyTorch.
+- `1.10 <= torch <= 1.13` OR `torch >= 2.0` (recommended). For `torch <= 1.13`, the package `functorch` is used. Note that in some early versions, `functorch` is not automatically installed with PyTorch, and you may need to install it manually. For `torch >= 2.0`, `torch.func` is now shipped with PyTorch.
 - `torchdiffeq, tqdm, numpy`.
 - `scipy` (optional). Only required for the optimal transport during training with `ot=True`.
 
 
-#### Base installation
-With this installation, you can run all the experiments in the paper except for the promoter design task and pytorch-lightning training script. `jupyter` is not included in the environment.
-```bash
-conda env create -f env_base.yml
-```
+#### Installation with pytorch-lightning
+With this installation, you can run all the experiments in the paper except for the promoter design task. You can use pytorch-lightning with multi-GPU training (on Text8). `torch >= 2.0` is required to run the DiT model or the nanoGPT model with Flash Attention. `jupyter` is not included in the environment. The environment was built with Python version of 3.10.14, PyTorch version of 2.4.1, CUDA version of 12.1, and PyTorch Lightning version of 2.4.0.
 
-#### Pytorch-lightning installation (optional)
-With this installation, you can use pytorch-lightning with multi-GPU training (on Text8) in addition to all the experiments in the base environment. `torch >= 2.0` is required to run the nanoGPT with Flash Attention. `jupyter` is not included in the environment.
 ```bash
 conda env create -f env_lightning.yml
 ```
@@ -68,7 +65,6 @@ To run the promoter design experiments, first download the datasets and the pre-
 ```bash
 pip install pytabix pyBigWig pyfaidx pandas
 ```
-
 
 
 ## Usage
@@ -91,18 +87,18 @@ Our implementation is designed to be flexible and easy to use. As demonstrated [
 
 We also provide an implementation for the naive SFM that directly learns the vector field without the diffeomorphism in `SimpleCategoricalFlow` and a linear flow matching model that assumes a flat Euclidean geometry of the simplex in `LinearCategoricalFlow`. The interfaces are identical to `SphereCategoricalFlow`. More concrete examples can be found in [Notebook](#notebook).
 
-To train the model with the provided training script, you can use the following command:
+To train the model with the provided training script (binarized MNIST as an example), you can use the following command:
 ```bash
 python main.py configs/bmnist.yaml --savename bmnist
 ```
-Most arguments in the config file are self-explanatory. Feel free to modify them to suit your needs.
-To train the model using multiple GPUs, make sure you have pytorch-lightning properly installed following the instructions above, and run the following command:
+Most arguments in the config file are self-explanatory, and the config files for other tasks are provided under the `configs` directory. Feel free to modify them to suit your needs.
+To train the model using multiple GPUs, make sure you have pytorch-lightning properly installed following the [instructions](#installation-with-pytorch-lightning) above, and run the following command:
 
 ```bash
-python main_lightning.py configs/text8_lightning.yaml --savename text8_lightning
+python main_lightning.py configs/dit.yaml --savename text8_dit
 ```
 
-
+Note that the DiT model for Text8 uses [flash attention](https://github.com/Dao-AILab/flash-attention) and is hardcoded for `bf16` training. A `torch >= 2.0` is required to run the model. Some older NVIDIA GPUs and older versions of CUDA drivers may not support `bf16` training.
 
 ## Notebook
 
@@ -115,7 +111,7 @@ This notebook provides the visualization of the Riemannian structure and the Euc
 In this notebook, we train SFM and LinearFM on the Swiss roll on simplex dataset and calculate the NLL of the training samples.
 
 #### `eval_bmnist.ipynb`
-In this notebook, we evaluate the pre-trained SFM on the binary MNIST dataset. We calculate the FID of the generated samples and the NLL of the test data.
+In this notebook, we evaluate the trained SFM on the binary MNIST dataset. We calculate the FID of the generated samples and the NLL of the test data.
 
 
 

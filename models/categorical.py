@@ -60,7 +60,7 @@ class CategoricalFlow(nn.Module, ABC):
         self.encoder = encoder
         self.data_dims = data_dims
         self.n_class = n_class
-        self.total_data_dim = torch.LongTensor(data_dims).prod().item()
+        self.total_data_dim = torch.LongTensor(data_dims).prod().item() if data_dims is not None else None
         self.max_t = max_t
         self.ot = ot
         self.eps = eps
@@ -82,7 +82,6 @@ class CategoricalFlow(nn.Module, ABC):
         return sample_simplex(*size, device=device, eps=eps)
 
     @staticmethod
-    @abstractmethod
     def prior_logp0(p0, eps=1e-4):
         """
         Compute the log probability of the prior noise distribution on the probability simplex.
@@ -90,7 +89,7 @@ class CategoricalFlow(nn.Module, ABC):
         :param eps: small float to avoid instability
         :return: log probability of the prior noise distribution, Tensor of shape (...)
         """
-        pass
+        return 0
 
     @classmethod
     def sample_simplex_linear(cls, p, t, eps=1e-4):
@@ -211,7 +210,6 @@ class CategoricalFlow(nn.Module, ABC):
         return cls.exp(p, t.unsqueeze(-1) * cls.log(p, q, eps), eps)
 
     @classmethod
-    @abstractmethod
     def vecfield(cls, p, q, t, eps=0.) -> (Tensor, Tensor):
         """
         Vector field at timestep t.
@@ -223,7 +221,9 @@ class CategoricalFlow(nn.Module, ABC):
             pt: interpolant at timestep t, Tensors of shape (..., n)
             vf: vector field, Tensors of shape (..., n)
         """
-        pass
+        pt = cls.interpolate(p, q, t, eps)
+        vf = cls.log(pt, q, eps) / (1 - t).unsqueeze(-1)
+        return pt, vf
 
     #################################################
     # Forward and loss functions                    #
@@ -578,30 +578,6 @@ class CategoricalFlow(nn.Module, ABC):
         elbo = elbo_fn(p1, n_steps, tmax=tmax, verbose=verbose)
         return elbo
 
-    @torch.no_grad()
-    def compute_bpd_euler(self, p1, n_steps=300, eps=1e-3):
-        """
-        Compute the bits per dimension (BPD) using Euler method.
-        ODE solver is not used here because of the singularity around the boundary.
-        :param p1: data points, Tensor of shape (B, D, n)
-        :param n_steps: number of Euler steps
-        :param eps: small float to avoid instability
-        :return: average BPD
-        """
-        device = p1.device
-        p_hat = self.preprocess(p1)
-        ts = torch.linspace(1, 0, n_steps + 1, device=device, dtype=torch.float)
-        dt = 1 / n_steps
-        nll = torch.tensor(0., device=device, dtype=torch.float)
-
-        for t in tqdm(ts[:-1], desc='Euler BPD'):
-            vf = self(t, p_hat)
-            p_hat = self.exp(p_hat, -vf * dt)
-            p_hat = self.proj_x(p_hat)
-            p = self.postprocess(p_hat)
-            nll -= (p * p1).sum(-1).clamp(min=eps).log() / (1 - t + dt) * dt
-        return nll.mean() / np.log(2)
-
 
 class SimplexCategoricalFlow(CategoricalFlow):
     r"""
@@ -782,5 +758,5 @@ __all__ = [
     'CategoricalFlow',
     'SimplexCategoricalFlow',
     'SphereCategoricalFlow',
-    'LinearCategoricalFlow'
+    'LinearCategoricalFlow',
 ]

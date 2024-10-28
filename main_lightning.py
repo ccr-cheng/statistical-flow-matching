@@ -29,7 +29,7 @@ if __name__ == '__main__':
     train_set, valid_set = get_dataset(config.datasets, return_test=False)
 
     # Dataloader
-    train_loader = DataLoader(train_set, batch_size=config.train.batch_size, shuffle=True, num_workers=4)
+    train_loader = DataLoader(train_set, batch_size=config.train.batch_size, shuffle=True)
     valid_loader = DataLoader(valid_set, batch_size=config.train.batch_size, shuffle=False)
 
     # Model

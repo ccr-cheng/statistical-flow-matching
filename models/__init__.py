@@ -4,6 +4,11 @@ from .cnn import ConvNet
 from .seq_model import SeqNet
 from .transformer import GPT
 
+try:
+    from .dit import DiT
+except ImportError:
+    print('[WARNING]: `flash_attn` for DiT not installed, skip importing')
+
 
 def get_flow_model(model_cfg, encoder_cfg):
     """
